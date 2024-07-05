@@ -1,5 +1,5 @@
 import React from 'react';
-import Breadcrumbs from '../components/Breadcrumbs';
+import BreadStock from '../components/BreadStock'; 
 import ResponsiveAppBar from '../components/ResponsiveAppBar';
 import { styled } from '@mui/material/styles';
 import Table from '@mui/material/Table';
@@ -13,7 +13,7 @@ import Box from '@mui/material/Box';
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
-    backgroundColor: theme.palette.common.black,
+    backgroundColor: theme.palette.grey[800], 
     color: theme.palette.common.white,
   },
   [`&.${tableCellClasses.body}`]: {
@@ -78,7 +78,7 @@ const Stock = () => {
     <div>
       <ResponsiveAppBar />
       <Box sx={{ p: 3, maxWidth: '90%', margin: 'auto' }}>
-        <Breadcrumbs sx={{ mb: 2 }} />
+        <BreadStock sx={{ mb: 2 }} /> {}
         <CustomizedTables />
       </Box>
     </div>
