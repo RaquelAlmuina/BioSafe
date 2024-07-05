@@ -9,5 +9,5 @@ const Temperature = () => {
     </div>
   );
 };
-
+thte
 export default Temperature;
