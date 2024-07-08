@@ -10,8 +10,6 @@ import Stock from './pages/Stock';
 import { CssBaseline } from '@mui/material';
 import Access from './pages/Access';
 import Temperature from './pages/Temperature';
-import StockCreate from './pages/StockCreate';
-import StockDelete from './pages/StockDelete';
 
 
 
@@ -53,17 +51,7 @@ const router = createBrowserRouter([
   {
     path: '*',
     element: <h1>404: Página no encontrada</h1>,
-  },
-  {
-    path: '/entradas',
-    element: <StockCreate />,
-    errorElement: <h1>Error</h1>,
-  },
-  {
-    path: '/salidas',
-    element: <StockDelete />,
-    errorElement: <h1>Error</h1>,
-  },
+  }
 ]);
 
 const Root = () => (
