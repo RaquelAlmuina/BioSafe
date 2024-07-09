@@ -11,6 +11,8 @@ import { CssBaseline } from '@mui/material';
 import Access from './pages/Access';
 import Temperature from './pages/Temperature';
 
+
+
 const router = createBrowserRouter([
   {
     path: '/',
@@ -49,7 +51,7 @@ const router = createBrowserRouter([
   {
     path: '*',
     element: <h1>404: Página no encontrada</h1>,
-  },
+  }
 ]);
 
 const Root = () => (

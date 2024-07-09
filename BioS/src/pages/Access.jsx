@@ -77,10 +77,7 @@ const Access = () => {
   return (
     <div>
       <ResponsiveAppBar />
-      <Box sx={{ p: 3, maxWidth: '90%', margin: 'auto' }}>
-        <Breadcrumbs sx={{ mb: 2 }} />
-        <CustomizedTables />
-      </Box>
+
     </div>
   );
 };
