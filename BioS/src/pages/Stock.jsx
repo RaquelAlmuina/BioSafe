@@ -13,7 +13,7 @@ import Box from '@mui/material/Box';
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
-    backgroundColor: theme.palette.common.black,
+    backgroundColor: theme.palette.grey[800],
     color: theme.palette.common.white,
   },
   [`&.${tableCellClasses.body}`]: {
@@ -30,16 +30,16 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   },
 }));
 
-function createData(name, calories, fat, carbs, protein) {
-  return { name, calories, fat, carbs, protein };
+function createData(id, name, lote, expirationDate) {
+  return { id, name, lote, expirationDate };
 }
 
 const rows = [
-  createData('Frozen yoghurt', 159, 6.0, 24, 4.0),
-  createData('Ice cream sandwich', 237, 9.0, 37, 4.3),
-  createData('Eclair', 262, 16.0, 24, 6.0),
-  createData('Cupcake', 305, 3.7, 67, 4.3),
-  createData('Gingerbread', 356, 16.0, 49, 3.9),
+  createData(1, 'Frozen yoghurt', 'L001', '2024-07-15'),
+  createData(2, 'Ice cream sandwich', 'L002', '2024-08-01'),
+  createData(3, 'Eclair', 'L003', '2024-07-20'),
+  createData(4, 'Cupcake', 'L004', '2024-07-25'),
+  createData(5, 'Gingerbread', 'L005', '2024-08-10'),
 ];
 
 const CustomizedTables = () => {
@@ -48,23 +48,21 @@ const CustomizedTables = () => {
       <Table aria-label="customized table">
         <TableHead>
           <TableRow>
-            <StyledTableCell>ID </StyledTableCell>
+            <StyledTableCell style={{ width: '10%' }}>ID</StyledTableCell>
             <StyledTableCell align="right">Nombre</StyledTableCell>
+            <StyledTableCell align="right">Lote</StyledTableCell>
             <StyledTableCell align="right">Fecha de caducidad</StyledTableCell>
-            <StyledTableCell align="right">Carbs&nbsp;(g)</StyledTableCell>
-            <StyledTableCell align="right">Protein&nbsp;(g)</StyledTableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {rows.map((row) => (
-            <StyledTableRow key={row.name}>
-              <StyledTableCell component="th" scope="row">
-                {row.name}
+            <StyledTableRow key={row.id}>
+              <StyledTableCell component="th" scope="row" style={{ width: '10%' }}>
+                {row.id}
               </StyledTableCell>
-              <StyledTableCell align="right">{row.calories}</StyledTableCell>
-              <StyledTableCell align="right">{row.fat}</StyledTableCell>
-              <StyledTableCell align="right">{row.carbs}</StyledTableCell>
-              <StyledTableCell align="right">{row.protein}</StyledTableCell>
+              <StyledTableCell align="right">{row.name}</StyledTableCell>
+              <StyledTableCell align="right">{row.lote}</StyledTableCell>
+              <StyledTableCell align="right">{row.expirationDate}</StyledTableCell>
             </StyledTableRow>
           ))}
         </TableBody>
