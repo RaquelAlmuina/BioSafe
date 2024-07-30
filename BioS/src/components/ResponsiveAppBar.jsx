@@ -11,19 +11,21 @@ import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
-import AdbIcon from '@mui/icons-material/Adb';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import logoNegro from '../assets/logo_negro.png';
 
 const pages = ['Home'];
-const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
+const settings = ['Perfil', 'Cerrar sesión'];
 
 function ResponsiveAppBar() {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
+  const navigate = useNavigate();
 
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
   };
+
   const handleOpenUserMenu = (event) => {
     setAnchorElUser(event.currentTarget);
   };
@@ -36,11 +38,27 @@ function ResponsiveAppBar() {
     setAnchorElUser(null);
   };
 
+  const handleLogout = () => {
+    // Aquí puedes agregar cualquier lógica adicional para el cierre de sesión
+    // como borrar el estado de autenticación, limpiar almacenamiento local, etc.
+    navigate('/login'); // Redirige a la página de inicio de sesión
+  };
+
   return (
     <AppBar position="static">
       <Container maxWidth="xl">
         <Toolbar disableGutters>
-          <AdbIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
+          <Box
+            component="img"
+            src={logoNegro}
+            alt="logo"
+            sx={{
+              display: { xs: 'none', md: 'flex' },
+              mr: 1,
+              width: 80, 
+              height: 80, 
+            }}
+          />
           <Typography
             variant="h6"
             noWrap
@@ -56,7 +74,6 @@ function ResponsiveAppBar() {
               textDecoration: 'none',
             }}
           >
-            LOGO
           </Typography>
 
           <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
@@ -95,7 +112,17 @@ function ResponsiveAppBar() {
               ))}
             </Menu>
           </Box>
-          <AdbIcon sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }} />
+          <Box
+            component="img"
+            src={logoNegro}
+            alt="logo"
+            sx={{
+              display: { xs: 'flex', md: 'none' },
+              mr: 1,
+              width: 80, 
+              height: 80, 
+            }}
+          />
           <Typography
             variant="h5"
             noWrap
@@ -151,7 +178,10 @@ function ResponsiveAppBar() {
               onClose={handleCloseUserMenu}
             >
               {settings.map((setting) => (
-                <MenuItem key={setting} onClick={handleCloseUserMenu}>
+                <MenuItem 
+                  key={setting} 
+                  onClick={setting === 'Cerrar sesión' ? handleLogout : handleCloseUserMenu}
+                >
                   <Typography textAlign="center">{setting}</Typography>
                 </MenuItem>
               ))}
