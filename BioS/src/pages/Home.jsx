@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Container, Grid, Paper } from '@mui/material';
 import { Link } from 'react-router-dom';
 import ResponsiveAppBar from '../components/ResponsiveAppBar';
@@ -7,6 +7,15 @@ import VaccinesSharpIcon from '@mui/icons-material/VaccinesSharp';
 import PeopleAltSharpIcon from '@mui/icons-material/PeopleAltSharp';
 
 const Home = () => {
+  const [userName, setUserName] = useState('');
+
+  useEffect(() => {
+    const currentUser = localStorage.getItem('currentUser');
+    if (currentUser) {
+      setUserName(currentUser);
+    }
+  }, []);
+
   const icons = [
     { Icon: DeviceThermostatSharpIcon, label: 'Temperatura', path: '/temperature' },
     { Icon: VaccinesSharpIcon, label: 'Inventario', path: '/stock' },
@@ -18,7 +27,7 @@ const Home = () => {
       <ResponsiveAppBar />
       <Container maxWidth="lg">
         <Box sx={{ my: 4, textAlign: 'center' }}>
-          <h1>Bienvenido Maffiado</h1>
+          <h1>Bienvenido {userName}</h1>
           <Grid container spacing={4} justifyContent="center">
             {icons.map(({ Icon, label, path }, index) => (
               <Grid item key={index} xs={12} sm={6} md={4}>

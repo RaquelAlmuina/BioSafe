@@ -12,7 +12,7 @@ import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import { Link, useNavigate } from 'react-router-dom';
-import logoNegro from '../assets/logo_negro.png';
+import logoNegro from '../assets/LogoBlanco.png';
 
 const pages = ['Home'];
 const settings = ['Perfil', 'Cerrar sesión'];
@@ -39,9 +39,7 @@ function ResponsiveAppBar() {
   };
 
   const handleLogout = () => {
-    // Aquí puedes agregar cualquier lógica adicional para el cierre de sesión
-    // como borrar el estado de autenticación, limpiar almacenamiento local, etc.
-    navigate('/login'); // Redirige a la página de inicio de sesión
+    navigate('/login');
   };
 
   return (
@@ -54,9 +52,12 @@ function ResponsiveAppBar() {
             alt="logo"
             sx={{
               display: { xs: 'none', md: 'flex' },
-              mr: 1,
-              width: 80, 
-              height: 80, 
+              mr: 2,
+              maxWidth: 120,
+              maxHeight: 120,
+              width: 'auto',
+              height: 'auto',
+              objectFit: 'contain',
             }}
           />
           <Typography
@@ -119,8 +120,11 @@ function ResponsiveAppBar() {
             sx={{
               display: { xs: 'flex', md: 'none' },
               mr: 1,
-              width: 80, 
-              height: 80, 
+              maxWidth: 80,
+              maxHeight: 80,
+              width: 'auto',
+              height: 'auto',
+              objectFit: 'contain',
             }}
           />
           <Typography

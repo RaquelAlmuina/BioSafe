@@ -1,5 +1,4 @@
 import React from 'react';
-import Breadcrumbs from '../components/Breadcrumbs';
 import ResponsiveAppBar from '../components/ResponsiveAppBar';
 import { styled } from '@mui/material/styles';
 import Table from '@mui/material/Table';
@@ -9,7 +8,7 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
-import Box from '@mui/material/Box';
+import Container from '@mui/material/Container';
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -30,16 +29,16 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   },
 }));
 
-function createData(name, calories, fat, carbs, protein) {
-  return { name, calories, fat, carbs, protein };
+function createData(id, nombre, fechaCaducidad, carbs, protein) {
+  return { id, nombre, fechaCaducidad, carbs, protein };
 }
 
 const rows = [
-  createData('Frozen yoghurt', 159, 6.0, 24, 4.0),
-  createData('Ice cream sandwich', 237, 9.0, 37, 4.3),
-  createData('Eclair', 262, 16.0, 24, 6.0),
-  createData('Cupcake', 305, 3.7, 67, 4.3),
-  createData('Gingerbread', 356, 16.0, 49, 3.9),
+  createData(1, 'Producto A', '2023-12-31', 24, 4.0),
+  createData(2, 'Producto B', '2023-11-30', 37, 4.3),
+  createData(3, 'Producto C', '2024-01-15', 24, 6.0),
+  createData(4, 'Producto D', '2023-10-31', 67, 4.3),
+  createData(5, 'Producto E', '2024-02-28', 49, 3.9),
 ];
 
 const CustomizedTables = () => {
@@ -48,7 +47,7 @@ const CustomizedTables = () => {
       <Table aria-label="customized table">
         <TableHead>
           <TableRow>
-            <StyledTableCell>ID </StyledTableCell>
+            <StyledTableCell>ID</StyledTableCell>
             <StyledTableCell align="right">Nombre</StyledTableCell>
             <StyledTableCell align="right">Fecha de caducidad</StyledTableCell>
             <StyledTableCell align="right">Carbs&nbsp;(g)</StyledTableCell>
@@ -57,12 +56,12 @@ const CustomizedTables = () => {
         </TableHead>
         <TableBody>
           {rows.map((row) => (
-            <StyledTableRow key={row.name}>
+            <StyledTableRow key={row.id}>
               <StyledTableCell component="th" scope="row">
-                {row.name}
+                {row.id}
               </StyledTableCell>
-              <StyledTableCell align="right">{row.calories}</StyledTableCell>
-              <StyledTableCell align="right">{row.fat}</StyledTableCell>
+              <StyledTableCell align="right">{row.nombre}</StyledTableCell>
+              <StyledTableCell align="right">{row.fechaCaducidad}</StyledTableCell>
               <StyledTableCell align="right">{row.carbs}</StyledTableCell>
               <StyledTableCell align="right">{row.protein}</StyledTableCell>
             </StyledTableRow>
@@ -77,7 +76,10 @@ const Temperature = () => {
   return (
     <div>
       <ResponsiveAppBar />
-
+      <Container maxWidth="lg" style={{ marginTop: '2rem' }}>
+        <h1>Temperatura</h1>
+        <CustomizedTables />
+      </Container>
     </div>
   );
 };

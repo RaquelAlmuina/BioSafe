@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
@@ -11,6 +12,8 @@ import Grid from '@mui/material/Grid';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { getFirestore, collection, getDocs } from "firebase/firestore";
+import { initializeApp } from "firebase/app";
 
 function Copyright(props) {
   return (
@@ -24,16 +27,45 @@ function Copyright(props) {
 
 const defaultTheme = createTheme();
 
+const firebaseConfig = {
+  apiKey: "AIzaSyAld7h21LTJtIn8doNLYsRWznaoF0gWzfo",
+  authDomain: "biosafe2-90221.firebaseapp.com",
+  projectId: "biosafe2-90221",
+  storageBucket: "biosafe2-90221.appspot.com",
+  messagingSenderId: "502286797810",
+  appId: "1:502286797810:web:a7fab35ea050ca428e396b"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
 export default function LogIn() {
   const navigate = useNavigate();
+  const [users, setUsers] = useState({});
 
-  const handleSubmit = (event) => {
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const usersCollection = collection(db, "Usuarios");
+      const userSnapshot = await getDocs(usersCollection);
+      const userList = {};
+      userSnapshot.forEach((doc) => {
+        userList[doc.id] = doc.data();
+      });
+      setUsers(userList);
+    };
+
+    fetchUsers();
+  }, []);
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    const username = data.get('email');
+    const username = data.get('nombre');
     const password = data.get('password');
-
-    if (username === 'maffiodo' && password === '123456') {
+  
+    if (users[username] && users[username].Password === password) {
+      // Guardar el nombre del usuario en el almacenamiento local
+      localStorage.setItem('currentUser', username);
       navigate('/home');
     } else {
       alert('Usuario o contraseña incorrectos');
@@ -50,7 +82,7 @@ export default function LogIn() {
           sm={4}
           md={7}
           sx={{
-            backgroundImage: 'url("https://i.ibb.co/5j1zbn7/vax.png")',
+            backgroundImage: 'url("https://img.freepik.com/fotos-premium/conjunto-jeringas-medicas-ampollas-medicamentos-vacunas-fila-sobre-fondo-azul_94046-5518.jpg")',
             backgroundColor: (t) =>
               t.palette.mode === 'light' ? t.palette.grey[50] : t.palette.grey[900],
             backgroundSize: 'cover',
@@ -78,10 +110,10 @@ export default function LogIn() {
                 margin="normal"
                 required
                 fullWidth
-                id="email"
-                label="Usuario"
-                name="email"
-                autoComplete="email"
+                id="nombre"
+                label="Nombre de usuario"
+                name="nombre"
+                autoComplete="nombre"
                 autoFocus
               />
               <TextField
