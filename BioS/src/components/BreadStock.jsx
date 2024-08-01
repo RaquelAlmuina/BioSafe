@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
-import Typography from '@mui/material/Typography';
 import Breadcrumbs from '@mui/material/Breadcrumbs';
 import Link from '@mui/material/Link';
 
@@ -18,7 +17,6 @@ export default function BreadStock() {
         <Link
           underline="hover"
           color="inherit"
-          href="/stock"
           onClick={handleClick('/stock')}
         >
           Stock
@@ -26,18 +24,9 @@ export default function BreadStock() {
         <Link
           underline="hover"
           color="inherit"
-          href="/entradas"
-          onClick={handleClick('/entradas')}
+          onClick={handleClick('/stock/create')} // Ruta para StockCreate
         >
           Entradas
-        </Link>
-        <Link
-          underline="hover"
-          color="inherit"
-          href="/salidas"
-          onClick={handleClick('/salidas')}
-        >
-          Salidas
         </Link>
       </Breadcrumbs>
     </div>

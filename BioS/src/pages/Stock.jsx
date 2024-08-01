@@ -1,21 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import BreadStock from '../components/BreadStock';
-import ResponsiveAppBar from '../components/ResponsiveAppBar';
+import { Link } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell, { tableCellClasses } from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
-
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Box, Container, Typography, IconButton, Checkbox, Button, TextField, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
+import { Delete as DeleteIcon } from '@mui/icons-material';
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
-
+import { getFirestore, collection, getDocs, deleteDoc, doc, getDoc } from "firebase/firestore";
+import ResponsiveAppBar from '../components/ResponsiveAppBar';
+import BreadStock from '../components/BreadStock';
 
 const firebaseConfig = {
   apiKey: "AIzaSyAld7h21LTJtIn8doNLYsRWznaoF0gWzfo",
@@ -26,16 +17,15 @@ const firebaseConfig = {
   appId: "1:502286797810:web:a7fab35ea050ca428e396b"
 };
 
-
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
-  [`&.${tableCellClasses.head}`]: {
-    backgroundColor: theme.palette.grey[800],
+  [`&.${TableCell.head}`]: {
+    backgroundColor: theme.palette.primary.main,
     color: theme.palette.common.white,
   },
-  [`&.${tableCellClasses.body}`]: {
+  [`&.${TableCell.body}`]: {
     fontSize: 14,
   },
 }));
@@ -49,29 +39,47 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   },
 }));
 
-const CustomizedTables = ({ vacunas, onEdit, onDelete }) => {
+const verifyPassword = async (password) => {
+  const username = localStorage.getItem('currentUser');
+  if (!username) return false;
+
+  const userDoc = doc(db, 'Usuarios', username);
+  const userSnap = await getDoc(userDoc);
+
+  if (userSnap.exists() && userSnap.data().Password === password) {
+    return true;
+  }
+  return false;
+};
+
+const CustomizedTables = ({ vacunas, onDelete, onSelect }) => {
   return (
     <TableContainer component={Paper}>
       <Table aria-label="customized table">
         <TableHead>
           <TableRow>
-            <StyledTableCell>ID</StyledTableCell>
-            <StyledTableCell align="right">Nombre</StyledTableCell>
+            <StyledTableCell>Seleccionar</StyledTableCell>
+            <StyledTableCell>Nombre</StyledTableCell>
             <StyledTableCell align="right">Fecha de caducidad</StyledTableCell>
-            <StyledTableCell align="right">Acciones</StyledTableCell>
+            <StyledTableCell align="right">Cantidad</StyledTableCell>
+            <StyledTableCell align="center">Acciones</StyledTableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {vacunas.map((vacuna) => (
+          {vacunas.filter(vacuna => vacuna.cantidad > 0).map((vacuna) => (
             <StyledTableRow key={vacuna.id}>
-              <StyledTableCell component="th" scope="row">
-                {vacuna.id}
+              <StyledTableCell>
+                <Checkbox onChange={(e) => onSelect(vacuna.id, e.target.checked)} />
               </StyledTableCell>
-              <StyledTableCell align="right">{vacuna.nVacunas}</StyledTableCell>
+              <StyledTableCell component="th" scope="row">
+                {vacuna.nVacunas}
+              </StyledTableCell>
               <StyledTableCell align="right">{vacuna.fVacunas}</StyledTableCell>
-              <StyledTableCell align="right">
-                <Button onClick={() => onEdit(vacuna)}>Editar</Button>
-                <Button onClick={() => onDelete(vacuna.id)}>Eliminar</Button>
+              <StyledTableCell align="right">{vacuna.cantidad}</StyledTableCell>
+              <StyledTableCell align="center">
+                <IconButton onClick={() => onDelete(vacuna.id)}>
+                  <DeleteIcon />
+                </IconButton>
               </StyledTableCell>
             </StyledTableRow>
           ))}
@@ -83,8 +91,11 @@ const CustomizedTables = ({ vacunas, onEdit, onDelete }) => {
 
 const Stock = () => {
   const [vacunas, setVacunas] = useState([]);
-  const [currentVacuna, setCurrentVacuna] = useState({ nVacunas: '', fVacunas: '' });
-  const [editing, setEditing] = useState(false);
+  const [selectedVacunas, setSelectedVacunas] = useState([]);
+  const [password, setPassword] = useState('');
+  const [openDialog, setOpenDialog] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     fetchVacunas();
@@ -97,56 +108,101 @@ const Stock = () => {
     setVacunas(vacunasList);
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setCurrentVacuna({ ...currentVacuna, [name]: value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (editing) {
-      await updateDoc(doc(db, 'Vacunas', currentVacuna.id), currentVacuna);
-    } else {
-      await addDoc(collection(db, 'Vacunas'), currentVacuna);
-    }
-    setCurrentVacuna({ nVacunas: '', fVacunas: '' });
-    setEditing(false);
-    fetchVacunas();
-  };
-
-  const handleEdit = (vacuna) => {
-    setCurrentVacuna(vacuna);
-    setEditing(true);
-  };
-
   const handleDelete = async (id) => {
-    await deleteDoc(doc(db, 'Vacunas', id));
-    fetchVacunas();
+    setDeleteId(id);
+    setOpenDialog(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (await verifyPassword(password)) {
+      await deleteDoc(doc(db, 'Vacunas', deleteId));
+      fetchVacunas();
+      setOpenDialog(false);
+      setPassword('');
+    } else {
+      setError('Contraseña incorrecta');
+    }
+  };
+
+  const handleSelect = (id, isSelected) => {
+    if (isSelected) {
+      setSelectedVacunas([...selectedVacunas, id]);
+    } else {
+      setSelectedVacunas(selectedVacunas.filter(vacunaId => vacunaId !== id));
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    setDeleteId('multiple');
+    setOpenDialog(true);
+  };
+  const handleConfirmDeleteSelected = async () => {
+    if (await verifyPassword(password)) {
+      for (const id of selectedVacunas) {
+        await deleteDoc(doc(db, 'Vacunas', id));
+      }
+      fetchVacunas();
+      setSelectedVacunas([]);
+      setOpenDialog(false);
+      setPassword('');
+    } else {
+      setError('Contraseña incorrecta');
+    }
   };
 
   return (
-    <div>
+    <>
       <ResponsiveAppBar />
-      <Box sx={{ p: 3, maxWidth: '90%', margin: 'auto' }}>
-        <BreadStock sx={{ mb: 2 }} />
-        <form onSubmit={handleSubmit}>
-          <TextField
-            name="nVacunas"
-            label="Nombre de la vacuna"
-            value={currentVacuna.nVacunas}
-            onChange={handleInputChange}
+      <Container maxWidth="lg">
+        <Box sx={{ mt: 4, mb: 4 }}>
+          <BreadStock sx={{ mb: 2 }} />
+          <Typography variant="h4" gutterBottom>
+            Gestión de Stock de Vacunas
+          </Typography>
+          <Button 
+            variant="contained" 
+            color="secondary" 
+            onClick={handleDeleteSelected}
+            disabled={selectedVacunas.length === 0}
+            sx={{ mb: 2 }}
+          >
+            Eliminar seleccionados
+          </Button>
+          <CustomizedTables 
+            vacunas={vacunas} 
+            onDelete={handleDelete}
+            onSelect={handleSelect}
           />
+        </Box>
+      </Container>
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
+        <DialogTitle>Confirmar eliminación</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {deleteId === 'multiple' 
+              ? '¿Estás seguro de que deseas eliminar los medicamentos seleccionados?' 
+              : '¿Estás seguro de que deseas eliminar este medicamento?'}
+          </DialogContentText>
           <TextField
-            name="fVacunas"
-            label="Fecha de caducidad"
-            value={currentVacuna.fVacunas}
-            onChange={handleInputChange}
+            autoFocus
+            margin="dense"
+            label="Contraseña"
+            type="password"
+            fullWidth
+            variant="standard"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
           />
-          <Button type="submit">{editing ? 'Actualizar' : 'Añadir'} Vacuna</Button>
-        </form>
-        <CustomizedTables vacunas={vacunas} onEdit={handleEdit} onDelete={handleDelete} />
-      </Box>
-    </div>
+          {error && <Typography color="error">{error}</Typography>}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDialog(false)}>Cancelar</Button>
+          <Button onClick={deleteId === 'multiple' ? handleConfirmDeleteSelected : handleConfirmDelete}>
+            Eliminar
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 };
 

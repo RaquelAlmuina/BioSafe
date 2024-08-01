@@ -1,21 +1,29 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { initializeApp } from 'firebase/app';
+import { getFirestore, collection, query, orderBy, limit, onSnapshot, getDocs } from 'firebase/firestore';
 import ResponsiveAppBar from '../components/ResponsiveAppBar';
 import { styled } from '@mui/material/styles';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell, { tableCellClasses } from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import Container from '@mui/material/Container';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Container, Typography, Box, Grid } from '@mui/material';
+import Alert from '@mui/material/Alert';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAld7h21LTJtIn8doNLYsRWznaoF0gWzfo",
+  authDomain: "biosafe2-90221.firebaseapp.com",
+  projectId: "biosafe2-90221",
+  storageBucket: "biosafe2-90221.appspot.com",
+  messagingSenderId: "502286797810",
+  appId: "1:502286797810:web:a7fab35ea050ca428e396b"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
-  [`&.${tableCellClasses.head}`]: {
-    backgroundColor: theme.palette.grey[800], 
+  [`&.${TableCell.head}`]: {
+    backgroundColor: theme.palette.primary.main,
     color: theme.palette.common.white,
   },
-  [`&.${tableCellClasses.body}`]: {
+  [`&.${TableCell.body}`]: {
     fontSize: 14,
   },
 }));
@@ -29,58 +37,133 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   },
 }));
 
-function createData(id, nombre, fechaCaducidad, carbs, protein) {
-  return { id, nombre, fechaCaducidad, carbs, protein };
-}
-
-const rows = [
-  createData(1, 'Producto A', '2023-12-31', 24, 4.0),
-  createData(2, 'Producto B', '2023-11-30', 37, 4.3),
-  createData(3, 'Producto C', '2024-01-15', 24, 6.0),
-  createData(4, 'Producto D', '2023-10-31', 67, 4.3),
-  createData(5, 'Producto E', '2024-02-28', 49, 3.9),
-];
-
-const CustomizedTables = () => {
-  return (
-    <TableContainer component={Paper}>
-      <Table aria-label="customized table">
-        <TableHead>
-          <TableRow>
-            <StyledTableCell>ID</StyledTableCell>
-            <StyledTableCell align="right">Nombre</StyledTableCell>
-            <StyledTableCell align="right">Fecha de caducidad</StyledTableCell>
-            <StyledTableCell align="right">Carbs&nbsp;(g)</StyledTableCell>
-            <StyledTableCell align="right">Protein&nbsp;(g)</StyledTableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {rows.map((row) => (
-            <StyledTableRow key={row.id}>
-              <StyledTableCell component="th" scope="row">
-                {row.id}
-              </StyledTableCell>
-              <StyledTableCell align="right">{row.nombre}</StyledTableCell>
-              <StyledTableCell align="right">{row.fechaCaducidad}</StyledTableCell>
-              <StyledTableCell align="right">{row.carbs}</StyledTableCell>
-              <StyledTableCell align="right">{row.protein}</StyledTableCell>
-            </StyledTableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  );
-};
-
 const Temperature = () => {
+  const [currentTemp, setCurrentTemp] = useState(null);
+  const [tempHistory, setTempHistory] = useState([]);
+  const [alerts, setAlerts] = useState([]);
+
+  useEffect(() => {
+    const tempMinutoRef = collection(db, 'TempMinuto');
+    const q = query(tempMinutoRef, orderBy('date', 'desc'), limit(1));
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      if (!snapshot.empty) {
+        const latestTemp = snapshot.docs[0].data();
+        setCurrentTemp(latestTemp);
+
+        const newAlert = { date: latestTemp.date, message: '' };
+        if (latestTemp.temperature < 3) {
+          newAlert.message = 'La temperatura ha bajado de 3 grados';
+        } else if (latestTemp.temperature > 8) {
+          newAlert.message = 'La temperatura ha subido de 8 grados';
+        }
+
+        if (newAlert.message) {
+          setAlerts(prevAlerts => [newAlert, ...prevAlerts.slice(0, 4)]);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const fetchTempHistory = async () => {
+      const tempMinutoRef = collection(db, 'TempMinuto');
+      const q = query(tempMinutoRef, orderBy('date', 'desc'), limit(10));
+      const snapshot = await getDocs(q);
+      const history = snapshot.docs.map(doc => doc.data());
+      setTempHistory(history);
+    };
+
+    fetchTempHistory();
+  }, []);
+
+  const formatDate = (dateString) => {
+    if (dateString) {
+      return new Date(dateString).toLocaleString();
+    }
+    return 'Fecha no disponible';
+  };
+
   return (
-    <div>
+    <>
       <ResponsiveAppBar />
-      <Container maxWidth="lg" style={{ marginTop: '2rem' }}>
-        <h1>Temperatura</h1>
-        <CustomizedTables />
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <Typography variant="h4" gutterBottom component="div">
+          Monitoreo de Temperatura
+        </Typography>
+        
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={6}>
+            <Paper elevation={3} sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
+              <Typography variant="h6" gutterBottom>
+                Temperatura Actual
+              </Typography>
+              {currentTemp && (
+                <Box>
+                  <Typography variant="h3" color="primary">
+                    {currentTemp.temperature.toFixed(1)}°C
+                  </Typography>
+                  <Typography variant="body1">
+                    Humedad: {currentTemp.humidity.toFixed(1)}%
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Hora: {currentTemp.time}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Fecha: {formatDate(currentTemp.date)}
+                  </Typography>
+                </Box>
+              )}
+            </Paper>
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <Paper elevation={3} sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
+              <Typography variant="h6" gutterBottom>
+                Registro de Alertas
+              </Typography>
+              {alerts.map((alert, index) => (
+                <Alert key={index} severity="warning" sx={{ mb: 1 }}>
+                  {alert.message} - {formatDate(alert.date)}
+                </Alert>
+              ))}
+            </Paper>
+          </Grid>
+          
+          <Grid item xs={12}>
+            <Paper elevation={3} sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
+              <Typography variant="h6" gutterBottom>
+                Historial de Temperaturas
+              </Typography>
+              <TableContainer>
+                <Table aria-label="customized table">
+                  <TableHead>
+                    <TableRow>
+                      <StyledTableCell>Temperatura (°C)</StyledTableCell>
+                      <StyledTableCell>Humedad (%)</StyledTableCell>
+                      <StyledTableCell>Hora</StyledTableCell>
+                      <StyledTableCell>Fecha</StyledTableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {tempHistory.map((temp, index) => (
+                      <StyledTableRow key={index}>
+                        <StyledTableCell>{temp.temperature.toFixed(1)}</StyledTableCell>
+                        <StyledTableCell>{temp.humidity.toFixed(1)}</StyledTableCell>
+                        <StyledTableCell>{temp.time}</StyledTableCell>
+                        <StyledTableCell>{temp.date}</StyledTableCell>
+                      </StyledTableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
+          </Grid>
+        </Grid>
       </Container>
-    </div>
+    </>
   );
 };
 
