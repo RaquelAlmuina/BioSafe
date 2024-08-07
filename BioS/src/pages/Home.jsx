@@ -17,7 +17,7 @@ const Home = () => {
   }, []);
 
   const icons = [
-    { Icon: DeviceThermostatSharpIcon, label: 'Mamaguevaso', path: '/temperature' },
+    { Icon: DeviceThermostatSharpIcon, label: 'Temperatura', path: '/temperature' },
     { Icon: VaccinesSharpIcon, label: 'Inventario', path: '/stock' },
     { Icon: PeopleAltSharpIcon, label: 'Accesos', path: '/access' },
   ];
