@@ -3,7 +3,7 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, query, orderBy, limit, onSnapshot, getDocs } from 'firebase/firestore';
 import ResponsiveAppBar from '../components/ResponsiveAppBar';
 import { styled } from '@mui/material/styles';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Container, Typography, Box, Grid } from '@mui/material';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Container, Typography, Grid } from '@mui/material';
 import Alert from '@mui/material/Alert';
 
 const firebaseConfig = {
@@ -38,7 +38,6 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 }));
 
 const Temperature = () => {
-  const [currentTemp, setCurrentTemp] = useState(null);
   const [tempHistory, setTempHistory] = useState([]);
   const [alerts, setAlerts] = useState([]);
 
@@ -49,9 +48,9 @@ const Temperature = () => {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       if (!snapshot.empty) {
         const latestTemp = snapshot.docs[0].data();
-        setCurrentTemp(latestTemp);
+        const currentDate = new Date();
 
-        const newAlert = { date: latestTemp.date, message: '' };
+        const newAlert = { date: currentDate.toISOString(), message: '' };
         if (latestTemp.temperature < 3) {
           newAlert.message = 'La temperatura ha bajado de 3 grados';
         } else if (latestTemp.temperature > 8) {
@@ -73,7 +72,14 @@ const Temperature = () => {
       const q = query(tempMinutoRef, orderBy('date', 'desc'), limit(10));
       const snapshot = await getDocs(q);
       const history = snapshot.docs.map(doc => doc.data());
-      setTempHistory(history);
+      
+      const sortedHistory = history.sort((a, b) => {
+        const dateA = new Date(a.date + ' ' + a.time);
+        const dateB = new Date(b.date + ' ' + b.time);
+        return dateB - dateA;
+      });
+      
+      setTempHistory(sortedHistory);
     };
 
     fetchTempHistory();
@@ -81,7 +87,12 @@ const Temperature = () => {
 
   const formatDate = (dateString) => {
     if (dateString) {
-      return new Date(dateString).toLocaleString();
+      const date = new Date(dateString);
+      return date.toLocaleDateString('es-ES', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
     }
     return 'Fecha no disponible';
   };
@@ -95,31 +106,7 @@ const Temperature = () => {
         </Typography>
         
         <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
-            <Paper elevation={3} sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
-              <Typography variant="h6" gutterBottom>
-                Temperatura Actual
-              </Typography>
-              {currentTemp && (
-                <Box>
-                  <Typography variant="h3" color="primary">
-                    {currentTemp.temperature.toFixed(1)}°C
-                  </Typography>
-                  <Typography variant="body1">
-                    Humedad: {currentTemp.humidity.toFixed(1)}%
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Hora: {currentTemp.time}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Fecha: {formatDate(currentTemp.date)}
-                  </Typography>
-                </Box>
-              )}
-            </Paper>
-          </Grid>
-          
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12}>
             <Paper elevation={3} sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
               <Typography variant="h6" gutterBottom>
                 Registro de Alertas
@@ -153,7 +140,7 @@ const Temperature = () => {
                         <StyledTableCell>{temp.temperature.toFixed(1)}</StyledTableCell>
                         <StyledTableCell>{temp.humidity.toFixed(1)}</StyledTableCell>
                         <StyledTableCell>{temp.time}</StyledTableCell>
-                        <StyledTableCell>{temp.date}</StyledTableCell>
+                        <StyledTableCell>{formatDate(temp.date)}</StyledTableCell>
                       </StyledTableRow>
                     ))}
                   </TableBody>
